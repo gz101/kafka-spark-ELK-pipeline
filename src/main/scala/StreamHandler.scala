@@ -20,18 +20,16 @@ object StreamHandler {
         .option("kafka.bootstrap.servers", "kafka:9094")
         .option("subscribe", "messages")
         .load()
-        // .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
-        .as[(String, String)]
+        .selectExpr("CAST(value AS STRING)")
+        .as[String]
 
     val transformDS = 
       streamingDS
-        .map {
-          case (k, v) => (s"Key: ${k}", v.length)
-        }
+        .map(s => s"${s} has been transformed.")
       
     val ds = 
       transformDS
-        .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
+        .selectExpr("CAST(value AS STRING)")
         .writeStream
         .format("kafka")
         .option("kafka.bootstrap.servers", "kafka:9094")
