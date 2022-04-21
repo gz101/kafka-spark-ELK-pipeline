@@ -6,12 +6,13 @@ from kafka import KafkaProducer
 
 
 def serializer(message):
-    return json.dumps(message).encode('utf-8')
+    # return json.dumps(message).encode('utf-8')
+    return message.encode('utf-8')
 
 
 producer = KafkaProducer(
-    bootstrap_servers=['kafka:9094'],
-    # value_serializer=serializer
+    bootstrap_servers=['localhost:9094'],
+    value_serializer=serializer
 )
 
 
@@ -30,7 +31,7 @@ if __name__ == '__main__':
         #     break
 
     for i in range(10):
-        producer.send('messages', b'sending message to Kafka')
+        producer.send('messages', value=f'hello there {i}')
         print(f'sending message #{i} to Kafka')
         time_to_sleep = random.randint(3, 7)
         time.sleep(time_to_sleep)

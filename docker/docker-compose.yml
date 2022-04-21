@@ -47,6 +47,7 @@ services:
     image: wurstmeister/kafka
     container_name: kafka
     ports:
+      - 9092:9092
       - target: 9094
         published: 9094
         protocol: tcp
