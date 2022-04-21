@@ -1,14 +1,14 @@
 # import json 
 from kafka import KafkaConsumer
-import logging
+# import logging
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
+    # logging.basicConfig(level=logging.INFO)
 
     consumer = KafkaConsumer(
-        'responses',
-        bootstrap_servers=['172.21.0.0:9092'],
+        'messages',
+        bootstrap_servers=['kafka:9094'],
         auto_offset_reset='earliest',
         consumer_timeout_ms=8000,
         group_id=None

@@ -3,6 +3,8 @@ import time
 import json
 import random
 from kafka import KafkaProducer
+import logging
+
 
 
 def serializer(message):
@@ -17,6 +19,7 @@ producer = KafkaProducer(
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
     # count = 0
     # while True:
         # try:
