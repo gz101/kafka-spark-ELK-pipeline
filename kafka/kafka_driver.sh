@@ -16,10 +16,10 @@ if [ ! "$(docker ps -q -f name=kafka)" ]; then
     echo "Error: Kafka container not started."
     exit 1
 fi
-if [ ! "$(jq --version)" ]; then 
-    echo "Error: jq package not installed."
-    exit 2
-fi
+# if [ ! "$(jq --version)" ]; then 
+#     echo "Error: jq package not installed."
+#     exit 2
+# fi
 if [ ! -d "env" ]; then
     echo "Error: python environment directory not found."
     exit 3

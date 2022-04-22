@@ -8,7 +8,7 @@ if __name__ == '__main__':
 
     consumer = KafkaConsumer(
         'messages',
-        bootstrap_servers=['kafka:9094'],
+        bootstrap_servers=['localhost:9094'],
         auto_offset_reset='earliest',
         consumer_timeout_ms=8000,
         group_id=None

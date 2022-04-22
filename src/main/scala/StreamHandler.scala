@@ -17,7 +17,7 @@ object StreamHandler {
       spark
         .readStream
         .format("kafka")
-        .option("kafka.bootstrap.servers", "kafka:9094")
+        .option("kafka.bootstrap.servers", "kafka:9092")
         .option("subscribe", "messages")
         .load()
         .selectExpr("CAST(value AS STRING)")
@@ -32,7 +32,7 @@ object StreamHandler {
         .selectExpr("CAST(value AS STRING)")
         .writeStream
         .format("kafka")
-        .option("kafka.bootstrap.servers", "kafka:9094")
+        .option("kafka.bootstrap.servers", "kafka:9092")
         .option("checkpointLocation", "opt/spark-checkpoints")
         .option("topic", "responses")
         .start()

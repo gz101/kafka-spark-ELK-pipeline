@@ -33,7 +33,7 @@ if __name__ == '__main__':
         #     print('No more input from producer.')
         #     break
 
-    for i in range(10):
+    for i in range(30):
         producer.send('messages', value=f'hello there {i}')
         print(f'sending message #{i} to Kafka')
         time_to_sleep = random.randint(3, 7)
