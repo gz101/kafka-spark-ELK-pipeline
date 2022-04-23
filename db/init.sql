@@ -1,0 +1,8 @@
+DROP DATABASE IF EXISTS testdb;
+CREATE DATABASE testdb;
+
+CREATE TABLE testtable (
+    id INT NOT NULL,
+    input VARCHAR(16) NOT NULL,
+    PRIMARY KEY (id)
+);

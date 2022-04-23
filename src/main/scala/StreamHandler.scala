@@ -1,4 +1,8 @@
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.types._
+import org.apache.spark.sql.functions._
+
+case class DataNode(id: Int, input: String)
 
 object StreamHandler {
   def main(args: Array[String]): Unit = {
@@ -10,33 +14,38 @@ object StreamHandler {
         .master("local[*]")
         .getOrCreate()
     
-    spark.sparkContext.setLogLevel("WARN")
+    spark.sparkContext.setLogLevel("ERROR")
 
     import spark.implicits._
-    val streamingDS = 
+    val df = 
       spark
         .readStream
         .format("kafka")
         .option("kafka.bootstrap.servers", "kafka:9092")
         .option("subscribe", "messages")
+        .option("startingOffsets", "earliest")
         .load()
         .selectExpr("CAST(value AS STRING)")
-        .as[String]
 
-    val transformDS = 
-      streamingDS
-        .map(s => s"${s} has been transformed.")
-      
-    val ds = 
-      transformDS
-        .selectExpr("CAST(value AS STRING)")
+    val schema = new StructType()
+      .add("id", IntegerType)
+      .add("input", StringType)
+    
+    val dataDF = df.select(from_json(col("value"), schema).as("data"))
+      .select("data.*")
+      .as[DataNode]
+
+    val outputDS = 
+      dataDF
         .writeStream
-        .format("kafka")
-        .option("kafka.bootstrap.servers", "kafka:9092")
-        .option("checkpointLocation", "opt/spark-checkpoints")
-        .option("topic", "responses")
+        .format("console")
+        .outputMode("append")
+        // .format("kafka")
+        // .option("kafka.bootstrap.servers", "kafka:9092")
+        // .option("checkpointLocation", "opt/spark-checkpoints")
+        // .option("topic", "responses")
         .start()
     
-    ds.awaitTermination()
+    outputDS.awaitTermination()
   }
 }

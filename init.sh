@@ -4,9 +4,7 @@
 ./clean_env.sh
 
 # setup jar file and copy over to spark shared volume
-sbt clean && \
-sbt compile && \
-sbt assembly && \
+sbt clean compile assembly && \
 cp target/scala-2.13/2022SpringSparkJob.jar docker/spark/apps && \
 
 # start docker
