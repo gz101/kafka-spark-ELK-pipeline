@@ -59,14 +59,14 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
 
   postgres:
-    image: postgres:11.7-alpine
+    image: postgres:9.6
     container_name: postgres
     ports:
       - "5432:5432"
     environment:
-      - TZ=GMT+10
-      - PGTZ=GMT+10
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=casa1234
+      # - POSTGRES_DB=testdb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
     volumes:
-      - ./db/init.sql:/docker-entrypoint-initdb.d
+      # - ./db/data:/var/lib/postgresql/data
+      - "./db:/docker-entrypoint-initdb.d"

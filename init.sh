@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # clean the environment first
-./clean_env.sh
+./clean.sh
 
 # setup jar file and copy over to spark shared volume
 sbt clean compile assembly && \

@@ -1,4 +1,4 @@
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{SparkSession, Dataset}
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.functions._
 
@@ -31,15 +31,42 @@ object StreamHandler {
       .add("id", IntegerType)
       .add("input", StringType)
     
-    val dataDF = df.select(from_json(col("value"), schema).as("data"))
+    val dataDS = df.select(from_json(col("value"), schema).as("data"))
       .select("data.*")
       .as[DataNode]
 
+    def writePostgres(batch: Dataset[DataNode]): Unit = 
+      batch
+        .write
+        .format("jdbc")
+        .option("driver", "org.postgresql.Driver")
+        .option("url", "jdbc:postgresql://postgres:5432/testdb")
+        .option("user", "postgres")
+        .option("password", "postgres")
+        .option("dbtable", "public.testtable")
+        .mode("append")
+        .save()
+    
+    def writeKafka(batch: Dataset[DataNode]): Unit = 
+      batch 
+        .write
+        .format("kafka")
+        .option("kafka.bootstrap.servers", "kafka:9092")
+        .option("checkpointLocation", "opt/spark-checkpoints")
+        .option("topic", "responses")
+
     val outputDS = 
-      dataDF
+      dataDS
         .writeStream
-        .format("console")
-        .outputMode("append")
+        .foreachBatch { (batch: Dataset[DataNode], _: Long) =>
+          batch.persist()
+          writePostgres(batch)
+          writeKafka(batch)
+          batch.unpersist()
+          ()
+        }
+        // .format("console")
+        // .outputMode("append")
         // .format("kafka")
         // .option("kafka.bootstrap.servers", "kafka:9092")
         // .option("checkpointLocation", "opt/spark-checkpoints")
