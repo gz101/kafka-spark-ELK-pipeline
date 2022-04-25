@@ -2,9 +2,9 @@
 
 function hit_api_ping() {
     counter=1
-    while [[ $counter -le 10 ]]
+    while [[ $counter -le 2 ]]
     do
-        response=$(curl -s -H "Accept: application/json" -H "Content-Type: application/json" -X GET https://geotech-api.herokuapp.com/ping/)
+        response=$(curl -s -H "Accept: application/json" -H "Content-Type: application/json" -X GET https://geotech-api.herokuapp.com/params/water_standpipe/)
         echo "$response" >pipe
         ((counter++))
     done
@@ -42,7 +42,7 @@ hit_api_ping &
 python3 ./consumer.py
 
 # cleanup
-rm pipe && \
+sudo rm pipe && \
 deactivate
 if [ -f "$pipe" ]; then
     echo "Error: failed cleanup."
