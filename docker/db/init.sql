@@ -3,11 +3,11 @@ CREATE DATABASE monitoring;
 \c monitoring;
 
 CREATE TABLE waterstandpipe (
-    boreholeNumber varchar(10) NOT NULL,
-    instrument varchar(20) NOT NULL,
-    surfaceLevel FLOAT NOT NULL,
-    northing BIGINT NOT NULL,
-    easting BIGINT NOT NULL,
-    waterLevel FLOAT NOT NULL,
-    ts varchar(30) NOT NULL
+    boreholeNumber varchar(10),
+    instrument varchar(20),
+    surfaceLevel FLOAT,
+    northing BIGINT,
+    easting BIGINT,
+    waterLevel FLOAT,
+    ts varchar(30)
 );

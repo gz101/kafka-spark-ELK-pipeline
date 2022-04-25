@@ -50,13 +50,16 @@ object StreamHandler {
       StructField("length", IntegerType, true),
       StructField("RL_units", StringType, true),
       StructField("timezone", StringType, true),
-      StructField("items", innerSchema, true)
+      StructField("items", ArrayType(innerSchema), true)
     ))
     
     val dataDF = df.select(from_json(col("value"), schema).as("data"))
       .select("data.*")
+    
+    val expandedDF = dataDF.select($"*", explode($"items") as "itemsFlattened")
+      .drop($"items")
 
-    val itemsDF = dataDF.select($"items.*")
+    val itemsDF = expandedDF.select($"itemsFlattened.*")
 
     val outputDS = itemsDF
       .withColumnRenamed("borehole_number", "boreholeNumber")
