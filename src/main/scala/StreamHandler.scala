@@ -82,12 +82,15 @@ object StreamHandler {
         .save()
     
     def writeKafka(batch: Dataset[WaterStandpipe]): Unit = 
-      batch 
+      batch.toDF()
+        .select(to_json(struct("*")).as("value"))
+        .selectExpr("CAST(value AS STRING)")
         .write
         .format("kafka")
         .option("kafka.bootstrap.servers", "kafka:9092")
         .option("checkpointLocation", "opt/spark-checkpoints")
         .option("topic", "waterStandpipeOut")
+        .save()
 
     val writeDS = 
       outputDS
