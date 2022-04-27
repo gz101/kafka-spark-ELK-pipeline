@@ -1,4 +1,6 @@
 import json 
+import time
+import random
 from kafka import KafkaConsumer
 
 
@@ -14,6 +16,8 @@ if __name__ == '__main__':
     for message in consumer:
         print('Hello from consumer!')
         print(json.loads(message.value))
+        time_to_sleep = random.randint(1, 2)
+        time.sleep(time_to_sleep)
 
     print('Goodbye from consumer')
     consumer.close()

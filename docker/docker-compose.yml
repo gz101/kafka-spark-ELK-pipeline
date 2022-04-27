@@ -5,13 +5,12 @@ services:
     image: esumitra/cluster-apache-spark:3.2.1
     container_name: spark-master
     ports:
-      - "8080:8080"
-      - "7077:7077"
-      - "4040:4040"
+      - 8080:8080
+      - 7077:7077
+      - 4040:4040
     volumes:
        - ./spark/apps:/opt/spark-apps
        - ./spark/checkpoints:/opt/spark-checkpoints
-      #  - ./data:/opt/spark-data
     environment:
       - SPARK_LOCAL_IP=spark-master
       - SPARK_WORKLOAD=master
@@ -20,8 +19,8 @@ services:
     image: esumitra/cluster-apache-spark:3.2.1
     container_name: spark-worker-a
     ports:
-      - "8081:8080"
-      - "7000:7000"
+      - 8081:8080
+      - 7000:7000
     depends_on:
       - spark-master
     environment:
@@ -35,13 +34,12 @@ services:
     volumes:
        - ./spark/apps:/opt/spark-apps
        - ./spark/checkpoints:/opt/spark-checkpoints
-      #  - ./data:/opt/spark-data
   
   zookeeper:
     image: wurstmeister/zookeeper
     container_name: zookeeper
     ports:
-      - "2181:2181"
+      - 2181:2181
   
   kafka:
     image: wurstmeister/kafka
@@ -49,7 +47,7 @@ services:
     depends_on:
       - zookeeper
     ports:
-      - "9094:9094"
+      - 9094:9094
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
@@ -62,9 +60,38 @@ services:
     image: postgres:9.6
     container_name: postgres
     ports:
-      - "5432:5432"
+      - 5432:5432
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     volumes:
-      - "./db:/docker-entrypoint-initdb.d"
+      - ./db:/docker-entrypoint-initdb.d
+  
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.4.0
+    container_name: elasticsearch
+    ports:
+      - 9200:9200
+      - 9300:9300
+  
+  kibana:
+    image: docker.elastic.co/kibana/kibana:6.4.0
+    container_name: kibana
+    ports:
+      - 5601:5601
+    # links:
+    #   - elasticsearch:elasticsearch
+    depends_on:
+      - elasticsearch
+  
+  logstash:
+    image: docker.elastic.co/logstash/logstash:6.4.0
+    container_name: logstash
+    # links:
+    #   - elasticsearch:elasticsearch
+    #   - kafka:kafka
+    depends_on:
+      - elasticsearch
+      - kafka
+    volumes:
+      - ./logstash/config:/usr/share/logstash/pipeline
