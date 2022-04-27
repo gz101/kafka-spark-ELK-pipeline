@@ -21,8 +21,9 @@ In a seperate terminal, use the `Spark`'s `Docker` terminal to submit the `Spark
 Once the `Spark` application is started, the `Kafka Producer` will need to be run in order to ingest data into this pipeline. Run `python ./kafka-producer/producer.py` once the required `Python` environment is setup using the `/kafka-producer/requirements.txt` file. If everything was setup correctly, a line for each message sent should be printed onto the console.
 
 To verify the data has been correctly processed on the real-time layer side, run the command `kafka-console-consumer.sh --topic waterStandpipeOut --broker-list localhost:9092`. This places the current terminal in a polling mode, waiting for transformed messages to arrive. To carry out the corresponding verification for the batch layer side, use the following commands to inspect the `PostgreSQL` database to see the written data in it's transformed state:
-1. step 1...
-2. step 2...
+1. `docker exec -it postgres sh`
+2. `psql -U postgres monitoring -W` and when prompted, enter the password `postgres`
+3. `SELECT * FROM waterstandpipe ;`
 
 To check that the pipeline correctly pushes data into `Logstash`, `Elasticsearch`, and `Kibana`, check the following two URLs in a web browser:
 - `http://localhost:9200` for `Elasticsearch`
