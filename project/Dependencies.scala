@@ -10,7 +10,7 @@ object Dependencies {
   )
 
   // val circeVersion = "0.13.0"
-  // val pureconfigVersion = "0.15.0"
+  val pureconfigVersion = "0.15.0"
   // val catsVersion = "2.2.0"
   val sparkVersion = "3.2.1"
   val postgresVersion = "42.2.2" 
@@ -26,7 +26,7 @@ object Dependencies {
     // "io.circe" %% "circe-literal" % circeVersion,
 
     // support for typesafe configuration
-    // "com.github.pureconfig" %% "pureconfig" % pureconfigVersion,
+    "com.github.pureconfig" %% "pureconfig" % pureconfigVersion,
 
     // parallel collections
     // "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4",

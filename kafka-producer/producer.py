@@ -25,7 +25,7 @@ if __name__ == '__main__':
     
     while count < iterations:
         try:
-            producer.send('waterStandpipeIn', resp)
+            producer.send('monitoring', resp)
             print(f'Producer sending input #{count} to Kafka.')
             count = count + 1
             time_to_sleep = random.randint(10, 20)

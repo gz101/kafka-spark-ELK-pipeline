@@ -1,109 +1,111 @@
-import org.apache.spark.sql.{SparkSession, Dataset}
-import org.apache.spark.sql.types._
+import org.apache.spark.sql.{SparkSession, Dataset, DataFrame}
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.streaming.StreamingQuery
+import pureconfig.generic.auto._
+import config.ConfigUtils
+import utils.SparkUtils
 
-case class WaterStandpipe(
-  boreholeNumber: String,
-  instrument: String,
-  surfaceLevel: Float,
-  northing: Long,
-  easting: Long,
-  waterLevel: Float,
-  ts: String
+case class SparkJobConfig(
+  name: String,
+  masterURL: String,
+  kafkaFormat: String,
+  kafkaBootstrapServers: String,
+  kafkaSubscribe: String,
+  kafkaStartingOffsets: String,
+  kafkaCheckpoint: String,
+  postgresFormat: String,
+  postgresDriver: String,
+  postgresURL: String,
+  postgresUser: String,
+  postgresPassword: String,
+  postgresTable: String,
+  postgresMode: String
 )
 
 object StreamHandler {
   def main(args: Array[String]): Unit = {
-
+    implicit val appSettings = 
+      ConfigUtils.loadAppConfig[SparkJobConfig]("pipeline.spark-app")
     val spark = 
-      SparkSession
-        .builder()
-        .appName("Stream Handler")
-        .master("local[*]")
-        .getOrCreate()
-    
+      SparkUtils.sparkSession(appSettings.name, appSettings.masterURL)
     spark.sparkContext.setLogLevel("ERROR")
+    runJob(spark)
+  }
 
+  def runJob(spark: SparkSession)(implicit conf: SparkJobConfig): Unit = {
+    val dataDF: DataFrame = loadStream(spark)
+    val cleanedDS: Dataset[Instrument] = cleanData(spark, dataDF)
+    val savedStream: StreamingQuery = saveStream(cleanedDS)
+    savedStream.awaitTermination()
+  }
+
+  def loadStream(spark: SparkSession)
+                (implicit conf: SparkJobConfig)
+                : DataFrame = {
+    spark
+      .readStream
+      .format(conf.kafkaFormat)
+      .option("kafka.bootstrap.servers", conf.kafkaBootstrapServers)
+      .option("subscribe", conf.kafkaSubscribe)
+      .option("startingOffsets", conf.kafkaStartingOffsets)
+      .load()
+      .selectExpr("CAST(value AS STRING)")
+  }
+
+  def cleanData(spark: SparkSession, dataDF: DataFrame): Dataset[Instrument] = {
     import spark.implicits._
-    val df = 
-      spark
-        .readStream
-        .format("kafka")
-        .option("kafka.bootstrap.servers", "kafka:9092")
-        .option("subscribe", "waterStandpipeIn")
-        .option("startingOffsets", "earliest")
-        .load()
-        .selectExpr("CAST(value AS STRING)")
-
-    val innerSchema = StructType(Seq(
-      StructField("borehole_number", StringType, true),
-      StructField("instrument", StringType, true),
-      StructField("surface_level", FloatType, true),
-      StructField("northing", IntegerType, true),
-      StructField("easting", IntegerType, true),
-      StructField("water_level", FloatType, true),
-      StructField("timestamp", StringType, true)
-    ))
-
-    val schema = StructType(Seq(
-      StructField("request_type", StringType, true),
-      StructField("length", IntegerType, true),
-      StructField("RL_units", StringType, true),
-      StructField("timezone", StringType, true),
-      StructField("items", ArrayType(innerSchema), true)
-    ))
-    
-    val dataDF = df.select(from_json(col("value"), schema).as("data"))
+    dataDF
+      .select(from_json(col("value"), Request.schema)
+      .as("data"))
       .select("data.*")
-    
-    val expandedDF = dataDF.select($"*", explode($"items") as "itemsFlattened")
+      .select($"*", explode($"items") as "itemsFlattened")
       .drop($"items")
-
-    val itemsDF = expandedDF.select($"itemsFlattened.*")
-
-    val outputDS = itemsDF
+      .select($"itemsFlattened.*")
       .withColumnRenamed("borehole_number", "boreholeNumber")
       .withColumnRenamed("surface_level", "surfaceLevel")
-      .withColumnRenamed("water_level", "waterLevel")
-      .withColumnRenamed("borehole_number", "boreholeNumber")
       .withColumnRenamed("timestamp", "ts")
-      .as[WaterStandpipe]
+      .as[Instrument]
+  }
 
-    def writePostgres(batch: Dataset[WaterStandpipe]): Unit = 
-      batch
-        .write
-        .format("jdbc")
-        .option("driver", "org.postgresql.Driver")
-        .option("url", "jdbc:postgresql://postgres:5432/monitoring")
-        .option("user", "postgres")
-        .option("password", "postgres")
-        .option("dbtable", "public.waterstandpipe")
-        .mode("append")
-        .save()
-    
-    def writeKafka(batch: Dataset[WaterStandpipe]): Unit = 
-      batch.toDF()
-        .select(to_json(struct("*")).as("value"))
-        .selectExpr("CAST(value AS STRING)")
-        .write
-        .format("kafka")
-        .option("kafka.bootstrap.servers", "kafka:9092")
-        .option("checkpointLocation", "opt/spark-checkpoints")
-        .option("topic", "waterStandpipeOut")
-        .save()
+  def writePostgres(batch: Dataset[Instrument])
+                   (implicit conf: SparkJobConfig)
+                   : Unit = 
+    batch
+      .write
+      .format(conf.postgresFormat)
+      .option("driver", conf.postgresDriver)
+      .option("url", conf.postgresURL)
+      .option("user", conf.postgresUser)
+      .option("password", conf.postgresPassword)
+      .option("dbtable", conf.postgresTable)
+      .mode(conf.postgresMode)
+      .save()
+  
+  def writeKafka(batch: Dataset[Instrument])
+                (implicit conf: SparkJobConfig)
+                : Unit = 
+    batch
+      .toDF()
+      .select(col("instrument").as("topic"), to_json(struct("*")).as("value"))
+      .selectExpr("topic", "CAST(value AS STRING)")
+      .write
+      .format(conf.kafkaFormat)
+      .option("kafka.bootstrap.servers", conf.kafkaBootstrapServers)
+      .option("checkpointLocation", conf.kafkaCheckpoint)
+      .save()
 
-    val writeDS = 
-      outputDS
-        .writeStream
-        .foreachBatch { (batch: Dataset[WaterStandpipe], _: Long) =>
-          batch.persist()
-          writePostgres(batch)
-          writeKafka(batch)
-          batch.unpersist()
-          ()
-        }
-        .start()
-    
-    writeDS.awaitTermination()
+  def saveStream(dataDS: Dataset[Instrument])
+                (implicit conf: SparkJobConfig)
+                : StreamingQuery = {
+    dataDS
+      .writeStream
+      .foreachBatch { (batch: Dataset[Instrument], _: Long) =>
+        batch.persist()
+        writePostgres(batch)
+        writeKafka(batch)
+        batch.unpersist()
+        ()
+      }
+      .start()
   }
 }
