@@ -1,6 +1,7 @@
 import org.apache.spark.sql.{SparkSession, Dataset, DataFrame}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.streaming.StreamingQuery
+import org.apache.spark.sql.streaming._
 import pureconfig.generic.auto._
 import cats.implicits._
 import config.ConfigUtils
@@ -127,6 +128,7 @@ object StreamHandler {
                 : StreamingQuery = {
     dataDS
       .writeStream
+      .trigger(Trigger.ProcessingTime("5 seconds"))
       .foreachBatch { (batch: Dataset[Instrument], _: Long) =>
         batch.persist()
         writePostgres(batch)
@@ -134,6 +136,7 @@ object StreamHandler {
         batch.unpersist()
         ()
       }
+      .outputMode("update")
       .start()
   }
 }
