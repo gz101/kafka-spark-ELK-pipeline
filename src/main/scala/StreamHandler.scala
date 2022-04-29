@@ -2,6 +2,7 @@ import org.apache.spark.sql.{SparkSession, Dataset, DataFrame}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.streaming.StreamingQuery
 import pureconfig.generic.auto._
+import cats.implicits._
 import config.ConfigUtils
 import utils.SparkUtils
 
@@ -34,8 +35,11 @@ object StreamHandler {
 
   def runJob(spark: SparkSession)(implicit conf: SparkJobConfig): Unit = {
     val dataDF: DataFrame = loadStream(spark)
-    val cleanedDS: Dataset[Instrument] = cleanData(spark, dataDF)
-    val savedStream: StreamingQuery = saveStream(cleanedDS)
+    val flattenedDF: DataFrame = flattenCols(spark, dataDF)
+    val cleanedDS: Dataset[Instrument] = cleanCols(spark, flattenedDF)
+    val aggregatedDS: Dataset[Instrument] = 
+      aggregateInstruments(spark, cleanedDS)
+    val savedStream: StreamingQuery = saveStream(aggregatedDS)
     savedStream.awaitTermination()
   }
 
@@ -52,10 +56,10 @@ object StreamHandler {
       .selectExpr("CAST(value AS STRING)")
   }
 
-  def cleanData(spark: SparkSession, dataDF: DataFrame): Dataset[Instrument] = {
+  def flattenCols(spark: SparkSession, dataDF: DataFrame): DataFrame = {
     import spark.implicits._
     dataDF
-      .select(from_json(col("value"), Request.schema)
+      .select(from_json($"value", Instrument.schema)
       .as("data"))
       .select("data.*")
       .select($"*", explode($"items") as "itemsFlattened")
@@ -64,7 +68,31 @@ object StreamHandler {
       .withColumnRenamed("borehole_number", "boreholeNumber")
       .withColumnRenamed("surface_level", "surfaceLevel")
       .withColumnRenamed("timestamp", "ts")
+  }
+
+  def cleanCols(spark: SparkSession, dataDF: DataFrame): Dataset[Instrument] = {
+    import spark.implicits._
+    dataDF
+      .na.drop()
+      .filter(
+        !($"boreholeNumber" === "") && 
+        !($"instrument" === "") &&
+        !($"ts" === "")
+      )
       .as[Instrument]
+  }
+
+  def aggregateInstruments(
+    spark: SparkSession,
+    dataDS: Dataset[Instrument]
+  ): Dataset[Instrument] = {
+    import spark.implicits._
+    dataDS
+      .groupByKey(_.locationCoverage)
+      .reduceGroups(_ |+| _)
+      .map {
+        case (_, instrument) => instrument
+      }
   }
 
   def writePostgres(batch: Dataset[Instrument])
