@@ -12,7 +12,7 @@ urls = [
     "https://geotech-api.herokuapp.com/params/settlement/y",
     "https://geotech-api.herokuapp.com/params/settlement/z"
 ]
-iterations = 4
+iterations = 10
 
 
 def serializer(message):
