@@ -9,9 +9,7 @@ final case class Instrument(
   easting: Long,
   reading: Double,
   ts: String
-) {
-  def locationCoverage: (Long, Long) = (northing % 50, easting % 50)
-}
+)
 
 object Instrument {
   val innerSchema = StructType(Seq(

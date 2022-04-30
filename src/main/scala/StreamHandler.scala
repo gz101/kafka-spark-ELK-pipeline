@@ -36,7 +36,8 @@ object StreamHandler {
 
   def runJob(spark: SparkSession)(implicit conf: SparkJobConfig): Unit = {
     val dataDF: DataFrame = loadStream(spark)
-    val flattenedDF: DataFrame = flattenCols(spark, dataDF)
+    val jsonDF: DataFrame = readJson(dataDF)
+    val flattenedDF: DataFrame = flattenCols(spark, jsonDF)
     val cleanedDS: Dataset[Instrument] = cleanCols(spark, flattenedDF)
     val aggregatedDS: Dataset[Instrument] = 
       aggregateInstruments(spark, cleanedDS)
@@ -57,12 +58,16 @@ object StreamHandler {
       .selectExpr("CAST(value AS STRING)")
   }
 
+  def readJson(dataDF: DataFrame): DataFrame = {
+    dataDF
+      .select(from_json(col("value"), Instrument.schema)
+      .as("data"))
+      .select("data.*")
+  }
+
   def flattenCols(spark: SparkSession, dataDF: DataFrame): DataFrame = {
     import spark.implicits._
     dataDF
-      .select(from_json($"value", Instrument.schema)
-      .as("data"))
-      .select("data.*")
       .select($"*", explode($"items") as "itemsFlattened")
       .drop($"items")
       .select($"itemsFlattened.*")
@@ -89,7 +94,7 @@ object StreamHandler {
   ): Dataset[Instrument] = {
     import spark.implicits._
     dataDS
-      .groupByKey(_.locationCoverage)
+      .groupByKey(_.boreholeNumber)
       .reduceGroups(_ |+| _)
       .map {
         case (_, instrument) => instrument
