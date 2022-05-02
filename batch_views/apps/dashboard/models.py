@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class Main(models.Model):
+class Record(models.Model):
     boreholenumber = models.CharField(max_length=10, blank=True, null=True)
     instrument = models.CharField(max_length=20, blank=True, null=True)
     surfacelevel = models.FloatField(blank=True, null=True)
@@ -12,4 +12,4 @@ class Main(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'main'
+        db_table = 'record'

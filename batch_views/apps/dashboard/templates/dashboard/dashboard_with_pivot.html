@@ -1,11 +1,198 @@
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard with Flexmonster</title>
-    <script src="https://cdn.flexmonster.com/flexmonster.js"></script>
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.flexmonster.com/demo.css">
-</head>
-<body>
-    <div id="pivot-table-container" data-url="{% url 'pivot_data' %}"></div>
-    <div id="pivot-chart-container"></div>
-</body>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Dashboard with Flexmonster</title>
+        <script src="https://cdn.flexmonster.com/flexmonster.js"></script>
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <link rel="stylesheet" href="https://cdn.flexmonster.com/demo.css">
+        <style>
+            .fm-charts-color-1 {
+            fill: #ffa600 !important;
+            }
+
+            .fm-charts-color-2 {
+            fill: #7eae26 !important;
+            }
+
+            .fm-charts-color-3 {
+            fill: #00a45a !important;
+            }
+
+            .fm-charts-color-4 {
+            fill: #df3800 !important;
+            }
+
+            .fm-charts-color-5 {
+            fill: #e95800 !important;
+            }
+
+            .fm-charts-color-6 {
+            fill: #ffa600 !important;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="pivot-table-container" data-url="{% url 'pivot_data' %}"></div>
+        <div id="pivot-chart-container"></div>
+        <script>
+            function processData(dataset) {
+                var result = []
+                dataset = JSON.parse(dataset);
+                dataset.forEach(item => result.push(item.fields));
+                return result;
+            }
+            $.ajax({
+                url: $("#pivot-table-container").attr("data-url"),
+                dataType: 'json',
+                success: function(data) {
+                    new Flexmonster({
+                        container: "#pivot-table-container",
+                        componentFolder: "https://cdn.flexmonster.com/",
+                        width: "100%",
+                        height: 430,
+                        toolbar: true,
+                        report: {
+                            dataSource: {
+                                type: "json",
+                                data: processData(data),
+                                mapping: {
+                                    "boreholenumber": {
+                                        "caption": "Borehole Number"
+                                    },
+                                    "instrument": {
+                                        "caption": "Instrument"
+                                    },
+                                    "surfacelevel": {
+                                        "caption": "Surface Level",
+                                        "type": "number"
+                                    },
+                                    "northing": {
+                                        "caption": "Northing",
+                                        "type": "number"
+                                    },
+                                    "easting": {
+                                        "caption": "Easting",
+                                        "type": "number"
+                                    },
+                                    "reading": {
+                                        "caption": "Reading",
+                                        "type": "number"
+                                    },
+                                    "ts": {
+                                        "caption": "Timestamp",
+                                        "type": "datetime"
+                                    }
+                                }
+                            },
+                            "slice": {
+                                "expands": {
+                                    "expandAll": "true"
+                                },
+                                "rows": [{
+                                    "uniqueName": "instrument"
+                                }],
+                                "columns": [{
+                                        "uniqueName": "boreholenumber",
+                                    },
+                                    {
+                                        "uniqueName": "ts",
+                                    },
+                                    {
+                                        "uniqueName": "[Measures]"
+                                    }
+                                ],
+                                "measures": [{
+                                        "uniqueName": "reading",
+                                        "aggregation": "max"
+                                    },
+                                    // {
+                                        // "uniqueName": "ts",
+                                    // }
+                                ]
+                            }
+                        }
+                    });
+                    new Flexmonster({
+                        container: "#pivot-chart-container",
+                        componentFolder: "https://cdn.flexmonster.com/",
+                        width: "100%",
+                        height: 430,
+                        //toolbar: true,
+                        report: {
+                            dataSource: {
+                                type: "json",
+                                data: processData(data),
+                                mapping: {
+                                    "boreholenumber": {
+                                        "caption": "Borehole Number"
+                                    },
+                                    "instrument": {
+                                        "caption": "Instrument"
+                                    },
+                                    "surfacelevel": {
+                                        "caption": "Surface Level",
+                                        "type": "number"
+                                    },
+                                    "northing": {
+                                        "caption": "Northing",
+                                        "type": "number"
+                                    },
+                                    "easting": {
+                                        "caption": "Easting",
+                                        "type": "number"
+                                    },
+                                    "reading": {
+                                        "caption": "Reading",
+                                        "type": "number"
+                                    },
+                                    "ts": {
+                                        "caption": "Timestamp",
+                                    }
+                                }
+                            },
+                            "slice": {
+                                "rows": [{
+                                    "uniqueName": "ts"
+                                }],
+                                "columns": [{
+                                        "uniqueName": "boreholenumber",
+                                        /*"filter": {
+                                            "measure": {
+                                                "uniqueName": "bh",
+                                                "aggregation": "none"
+                                            },
+                                            "query": {
+                                                "top": 2
+                                            }
+                                        }*/
+                                    },
+                                    {
+                                        "uniqueName": "instrument"
+                                    },
+                                    {
+                                        "uniqueName": "reading"
+                                    },
+                                    {
+                                        "uniqueName": "[Measures]"
+                                    }
+                                ],
+                                "measures": [{
+                                        "uniqueName": "reading",
+                                        "aggregation": "max"
+                                    }
+                                ]
+                            },
+                            "options": {
+                                "viewType": "charts",
+                                "chart": {
+                                    "type": "line"
+                                },
+                            }
+                        }
+                    });
+                }
+            });
+
+        </script>
+    </body>
+</html>
