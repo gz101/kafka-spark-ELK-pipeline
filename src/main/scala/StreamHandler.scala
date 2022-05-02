@@ -133,7 +133,7 @@ object StreamHandler {
                 : StreamingQuery = {
     dataDS
       .writeStream
-      .trigger(Trigger.ProcessingTime("5 seconds"))
+      .trigger(Trigger.ProcessingTime("10 seconds"))
       .foreachBatch { (batch: Dataset[Instrument], _: Long) =>
         batch.persist()
         writePostgres(batch)
