@@ -47,7 +47,7 @@ object StreamHandler {
 
   def loadStream(spark: SparkSession)
                 (implicit conf: SparkJobConfig)
-                : DataFrame = {
+                : DataFrame =
     spark
       .readStream
       .format(conf.kafkaFormat)
@@ -56,14 +56,12 @@ object StreamHandler {
       .option("startingOffsets", conf.kafkaStartingOffsets)
       .load()
       .selectExpr("CAST(value AS STRING)")
-  }
 
-  def readJson(dataDF: DataFrame): DataFrame = {
+  def readJson(dataDF: DataFrame): DataFrame = 
     dataDF
       .select(from_json(col("value"), Instrument.schema)
       .as("data"))
       .select("data.*")
-  }
 
   def flattenCols(spark: SparkSession, dataDF: DataFrame): DataFrame = {
     import spark.implicits._
@@ -130,7 +128,7 @@ object StreamHandler {
 
   def saveStream(dataDS: Dataset[Instrument])
                 (implicit conf: SparkJobConfig)
-                : StreamingQuery = {
+                : StreamingQuery = 
     dataDS
       .writeStream
       .trigger(Trigger.ProcessingTime("10 seconds"))
@@ -143,5 +141,4 @@ object StreamHandler {
       }
       .outputMode("update")
       .start()
-  }
 }
