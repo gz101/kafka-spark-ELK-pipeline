@@ -59,8 +59,7 @@ object StreamHandler {
 
   def readJson(dataDF: DataFrame): DataFrame = 
     dataDF
-      .select(from_json(col("value"), Instrument.schema)
-      .as("data"))
+      .select(from_json(col("value"), Instrument.schema).as("data"))
       .select("data.*")
 
   def flattenCols(spark: SparkSession, dataDF: DataFrame): DataFrame = {

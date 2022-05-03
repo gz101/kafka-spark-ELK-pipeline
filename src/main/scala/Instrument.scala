@@ -4,7 +4,7 @@ import cats._
 final case class Instrument(
   boreholeNumber: String,
   instrument: String,
-  surfaceLevel: Float,
+  surfaceLevel: Double,
   northing: Long,
   easting: Long,
   reading: Double,
@@ -12,10 +12,15 @@ final case class Instrument(
 )
 
 object Instrument {
+  def apply(): Instrument = Instrument(
+    "BH-1234", "water_standpipe", 80.80, 555555, 33333, 90.90, 
+    "2022-02-02T02:02:02.022Z"
+  )
+
   val innerSchema = StructType(Seq(
     StructField("borehole_number", StringType, true),
     StructField("instrument", StringType, true),
-    StructField("surface_level", FloatType, true),
+    StructField("surface_level", DoubleType, true),
     StructField("northing", IntegerType, true),
     StructField("easting", IntegerType, true),
     StructField("reading", DoubleType, true),
