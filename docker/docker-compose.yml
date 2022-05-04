@@ -62,6 +62,7 @@ services:
     ports:
       - 5432:5432
     environment:
+      # - POSTGRES_DB=monitoring
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     volumes:
@@ -93,16 +94,16 @@ services:
   #   volumes:
   #     - ./logstash/config:/usr/share/logstash/pipeline
 
-  # batch:
-  #   build: ../batch_views/
-  #   command: python manage.py runserver 0.0.0.0:8000
-  #   volumes:
-  #     - ../batch_views/:/code
-  #   ports:
-  #     - "8000:8000"
-  #   environment:
-  #     - POSTGRES_NAME=postgres
-  #     - POSTGRES_USER=postgres
-  #     - POSTGRES_PASSWORD=postgres
-  #   depends_on:
-  #     - postgres
+  batch:
+    build: ../batch_views/
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ../batch_views/:/code
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_NAME=monitoring
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    depends_on:
+      - postgres

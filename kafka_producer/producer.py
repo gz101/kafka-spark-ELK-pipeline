@@ -13,7 +13,7 @@ urls = [
     "https://geotech-api.herokuapp.com/params/settlement/z"
 ]
 
-iterations = 20
+iterations = 10
 
 
 def serializer(message):
