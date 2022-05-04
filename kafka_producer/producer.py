@@ -13,7 +13,7 @@ urls = [
     "https://geotech-api.herokuapp.com/params/settlement/z"
 ]
 
-iterations = 40
+iterations = 20
 
 
 def serializer(message):
@@ -33,11 +33,10 @@ if __name__ == '__main__':
             for url in urls:
                 resp = requests.get(url=url).json()
                 producer.send('monitoring', resp)
-                time.sleep(4)
             
             print(f'Producer sending input #{count} to Kafka.')
             count = count + 1
-            time_to_sleep = random.randint(4, 10)
+            time_to_sleep = random.randint(3, 8)
             time.sleep(time_to_sleep)
         except EOFError:
             print('No more input from producer.')
