@@ -19,21 +19,11 @@ object Dependencies {
     // cats FP libary
     "org.typelevel" %% "cats-core" % catsVersion,
 
-    // support for JSON formats
-    // "io.circe" %% "circe-core" % circeVersion,
-    // "io.circe" %% "circe-generic" % circeVersion,
-    // "io.circe" %% "circe-parser" % circeVersion,
-    // "io.circe" %% "circe-literal" % circeVersion,
-
     // support for typesafe configuration
     "com.github.pureconfig" %% "pureconfig" % pureconfigVersion,
 
-    // parallel collections
-    // "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4",
-
     // spark
     "org.apache.spark" %% "spark-sql" % sparkVersion % Provided, // for submiting spark app as a job to cluster
-    // "org.apache.spark" %% "spark-sql" % sparkVersion, // for simple standalone spark app
 
     // postgres database
     "org.postgresql" % "postgresql" % postgresVersion,

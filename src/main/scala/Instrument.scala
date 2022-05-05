@@ -1,6 +1,7 @@
 import org.apache.spark.sql.types._
 import cats._
 
+// represents each reading ingested from Kafka
 final case class Instrument(
   boreholeNumber: String,
   instrument: String,
@@ -12,11 +13,13 @@ final case class Instrument(
 )
 
 object Instrument {
+  // used for unit tests only
   def apply(): Instrument = Instrument(
     "BH-1234", "water_standpipe", 80.80, 555555, 33333, 90.90, 
     "2022-02-02T02:02:02.022Z"
   )
 
+  // schema to read JSON formatted strings into a Spark DataFrame
   val innerSchema = StructType(Seq(
     StructField("borehole_number", StringType, true),
     StructField("instrument", StringType, true),
@@ -34,6 +37,7 @@ object Instrument {
     StructField("items", ArrayType(innerSchema), true)
   ))
 
+  // used for aggregating (average) monitoring records
   implicit val averageCloseInstrumentsMonoid: Monoid[Instrument] = 
     new Monoid[Instrument] {
       override def empty: Instrument = Instrument("", "", 0, 0, 0, 0, "")

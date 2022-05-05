@@ -37,7 +37,7 @@ class StreamHandlerTest extends StandardTest {
           (134, "water level (m)", "UTC", items)
         ).toDF("instruments", "units", "timezone", "items")
 
-        outputDF = StreamHandler.readJson(dataDF)
+        outputDF = Reader.readJson(dataDF)
 
         outputDF.collect().mkString shouldEqual expectedDF.collect().mkString
       }
@@ -55,7 +55,7 @@ class StreamHandlerTest extends StandardTest {
           "reading", "ts"
         )
 
-        outputDF = StreamHandler.flattenCols(spark, outputDF)
+        outputDF = Cleaner.flattenCols(spark, outputDF)
 
         outputDF.collect().mkString shouldEqual expectedDF.collect().mkString
       }
@@ -65,7 +65,7 @@ class StreamHandlerTest extends StandardTest {
       "not affect valid data in a dataframe" in {
         val expectedDS = outputDF.as[Instrument]
         
-        outputDS = StreamHandler.cleanCols(spark, outputDF)
+        outputDS = Cleaner.cleanCols(spark, outputDF)
 
         outputDS.collect().mkString shouldEqual expectedDS.collect().mkString
       }
@@ -89,7 +89,7 @@ class StreamHandlerTest extends StandardTest {
           "reading", "ts"
         ).as[Instrument]
 
-        val output = StreamHandler.cleanCols(spark, input)
+        val output = Cleaner.cleanCols(spark, input)
 
         output.collect().mkString shouldEqual expected.collect().mkString
       }
@@ -99,7 +99,7 @@ class StreamHandlerTest extends StandardTest {
       "do nothing for all unique borehole numbers" in {
         val expectedDS = outputDS
 
-        outputDS = StreamHandler.aggregateInstruments(spark, outputDS)
+        outputDS = Cleaner.aggregateInstruments(spark, outputDS)
 
         outputDS.collect().mkString shouldEqual expectedDS.collect().mkString
       }
@@ -127,7 +127,7 @@ class StreamHandlerTest extends StandardTest {
           "reading", "ts"
         ).as[Instrument]
 
-        val output = StreamHandler.aggregateInstruments(spark, input)
+        val output = Cleaner.aggregateInstruments(spark, input)
 
         output.collect().mkString shouldEqual expected.collect().mkString
       }
