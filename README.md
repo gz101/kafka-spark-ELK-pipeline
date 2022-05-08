@@ -46,24 +46,24 @@ The pipeline `yaml` file is included within this repo if you would like to take 
 The following steps detail how to run this project locally.
 1. From the root directory, run the `bash` script `init.sh`. This compiles the Spark application `jar` file written in `Scala`, and starts all the required `Docker` containers.
 2. Submit the `Spark` job by running the following commands:
-  - `docker exec -it spark-master /bin/bash` to enter into the `Spark` container.
-  - `./opt/spark/bin/spark-submit --class StreamHandler --master local[*] --packages org.apache.spark:spark-sql-kafka-0-10_2.13:3.2.1 /opt/spark-apps/2022SpringSparkJob.jar` to run the `Spark` job.
+    - `docker exec -it spark-master /bin/bash` to enter into the `Spark` container.
+    - `./opt/spark/bin/spark-submit --class StreamHandler --master local[*] --packages org.apache.spark:spark-sql-kafka-0-10_2.13:3.2.1 /opt/spark-apps/2022SpringSparkJob.jar` to run the `Spark` job.
 3. Start the `Kafka Producer` by running the `bash` script `run.sh`.
 4. (Optional) Inspect the real-time streaming output data and created `Kafka` topics in the `Kafka Broker` by entering into the `Kafka` container with `docker exec -it kafka /bin/sh`
-  - `kafka-topics.sh --list --zookeeper zookeeper:2181`
-  - `kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic water_standpipe --from-beginning`
-  - `kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic piezometer --from-beginning`
-  - `kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic settlement_marker --from-beginning`
-  - `kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic extensometer --from-beginning`
-  - `kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic strain_gauge --from-beginning`
+    - `kafka-topics.sh --list --zookeeper zookeeper:2181`
+    - `kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic water_standpipe --from-beginning`
+    - `kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic piezometer --from-beginning`
+    - `kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic settlement_marker --from-beginning`
+    - `kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic extensometer --from-beginning`
+    - `kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic strain_gauge --from-beginning`
 5. (Optional) Inspect the `PostgreSQL` database streaming output data by entering into the `PostgreSQL` container with `docker exec -it postgres sh`
-  - `psql -U postgres monitoring -W ` to login to the database.
-  - `SELECT COUNT(*) FROM record ;`
-  - `SELECT * FROM record WHERE instrument='water_standpipe' LIMIT 5 ;`
-  - `SELECT * FROM record WHERE instrument='piezometer' LIMIT 5 ;`
-  - `SELECT * FROM record WHERE instrument='settlement_marker' LIMIT 5 ;`
-  - `SELECT * FROM record WHERE instrument='extensometer' LIMIT 5 ;`
-  - `SELECT * FROM record WHERE instrument='strain_gauge' LIMIT 5 ;`
+    - `psql -U postgres monitoring -W ` to login to the database.
+    - `SELECT COUNT(*) FROM record ;`
+    - `SELECT * FROM record WHERE instrument='water_standpipe' LIMIT 5 ;`
+    - `SELECT * FROM record WHERE instrument='piezometer' LIMIT 5 ;`
+    - `SELECT * FROM record WHERE instrument='settlement_marker' LIMIT 5 ;`
+    - `SELECT * FROM record WHERE instrument='extensometer' LIMIT 5 ;`
+    - `SELECT * FROM record WHERE instrument='strain_gauge' LIMIT 5 ;`
 6. (Optional) Inspect `Elasticsearch` to ensure it works by visiting `http://localhost:9200/`.
 7. The real-time `Kibana` visualization dashboard can be accessed using `http://localhost:5601/`.
 8. The batch data `Django` + `Flexmonster` visualization dashboard can be accessed using `http://localhost:8000/dashboard/`.
